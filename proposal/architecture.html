@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emotion-Based Song Matching</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', 'Noto Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1280px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1280px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>Emotion-based song matching</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 688" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
+        <title id="architecture-title">Emotion-based song matching</title>
+        <desc id="architecture-desc">A prompt encoder and a two-branch song encoder each map their input to an emotion vector in one shared space, where cosine similarity ranks songs against the user's prompt.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+        <!-- ============ ZONES ============ -->
+        <!-- Song Encoder: a composite function -->
+        <rect x="256" y="332" width="392" height="244" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <rect x="268" y="326" width="196" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="272" y="335" fill="rgba(45,49,66,0.55)" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">SONG ENCODER · E_s(song) → ℝᵈ</text>
+
+        <!-- Shared Emotion Space -->
+        <rect x="736" y="72" width="320" height="456" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <rect x="748" y="66" width="148" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="752" y="75" fill="rgba(45,49,66,0.45)" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">SHARED EMOTION SPACE · ℝᵈ</text>
+
+        <!-- ============ ARROWS ============ -->
+        <!-- inputs → encoders -->
+        <line x1="216" y1="152" x2="280" y2="152" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="216" y1="400" x2="280" y2="400" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="216" y1="520" x2="280" y2="520" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- prompt encoder → prompt vector -->
+        <line x1="440" y1="152" x2="800" y2="152" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="562" y="132" width="76" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="600" y="141" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PROMPT VECTOR</text>
+
+        <!-- branches → fusion -->
+        <path d="M440,400 H552 Q560,400 560,408 V436" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <path d="M440,520 H552 Q560,520 560,512 V484" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- fusion → song vector -->
+        <line x1="584" y1="460" x2="800" y2="460" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="660" y="440" width="64" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="692" y="449" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SONG VECTOR</text>
+
+        <!-- vectors → cosine -->
+        <line x1="896" y1="192" x2="896" y2="268" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="896" y1="420" x2="896" y2="340" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- cosine → ranked songs (headline) -->
+        <line x1="992" y1="304" x2="1096" y2="304" stroke="#eb6c36" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+        <rect x="1024" y="284" width="40" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="1044" y="293" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">TOP-K</text>
+
+        <!-- ============ NODES ============ -->
+        <!-- Input: user prompt -->
+        <rect x="40" y="120" width="176" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="40" y="120" width="176" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="48" y="126" width="20" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.5)" stroke-width="0.8"/>
+        <text x="58" y="135" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text x="128" y="154" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">User prompt</text>
+        <text x="128" y="170" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">"going through a breakup"</text>
+
+        <!-- Input: song descriptions -->
+        <rect x="40" y="368" width="176" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="40" y="368" width="176" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="48" y="374" width="20" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.5)" stroke-width="0.8"/>
+        <text x="58" y="383" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text x="128" y="402" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Song descriptions</text>
+        <text x="128" y="418" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">tags · captions</text>
+
+        <!-- Input: song audio -->
+        <rect x="40" y="488" width="176" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="40" y="488" width="176" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="48" y="494" width="20" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.5)" stroke-width="0.8"/>
+        <text x="58" y="503" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text x="128" y="522" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Song audio</text>
+        <text x="128" y="538" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">audio clip</text>
+
+        <!-- Encoder (function): Prompt Encoder — trapezoid narrows input to a fixed-length vector -->
+        <polygon points="280,116 440,130 440,174 280,188" fill="#f5f5f5"/>
+        <polygon points="280,116 440,130 440,174 280,188" fill="#ffffff" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="288" y="122" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="300" y="131" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">f(x)</text>
+        <text x="352" y="154" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prompt Encoder</text>
+        <text x="352" y="169" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">E_p: text → ℝᵈ</text>
+
+        <!-- Encoder (function): Text branch -->
+        <polygon points="280,364 440,378 440,422 280,436" fill="#f5f5f5"/>
+        <polygon points="280,364 440,378 440,422 280,436" fill="#ffffff" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="288" y="370" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="300" y="379" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">f(x)</text>
+        <text x="352" y="402" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Text branch</text>
+        <text x="352" y="417" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">E_txt: text → ℝᵈ</text>
+
+        <!-- Encoder (function): Audio branch -->
+        <polygon points="280,484 440,498 440,542 280,556" fill="#f5f5f5"/>
+        <polygon points="280,484 440,498 440,542 280,556" fill="#ffffff" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="288" y="490" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="300" y="499" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">f(x)</text>
+        <text x="352" y="522" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Audio branch</text>
+        <text x="352" y="537" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">E_aud: audio → ℝᵈ</text>
+
+        <!-- Operator: Fusion -->
+        <circle cx="560" cy="460" r="24" fill="#f5f5f5"/>
+        <circle cx="560" cy="460" r="24" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+        <text x="560" y="466" fill="#2d3142" font-size="18" font-family="'Geist', sans-serif" text-anchor="middle">⊕</text>
+        <text x="572" y="504" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif">Fusion</text>
+        <text x="572" y="520" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">w·t + (1−w)·a</text>
+
+        <!-- Vector glyph: prompt vector -->
+        <rect x="800" y="112" width="192" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="800" y="112" width="192" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="812" y="126" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">v_p · PROMPT</text>
+        <g fill="#4f5d75">
+          <rect x="818" y="135" width="16" height="35"/>
+          <rect x="846" y="145" width="16" height="25"/>
+          <rect x="874" y="154" width="16" height="16"/>
+          <rect x="902" y="168" width="16" height="2"/>
+          <rect x="930" y="159" width="16" height="11"/>
+          <rect x="958" y="166" width="16" height="4"/>
+        </g>
+        <line x1="812" y1="170" x2="980" y2="170" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <g fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">
+          <text x="826" y="182">SAD</text><text x="854" y="182">NOST</text><text x="882" y="182">LOVE</text>
+          <text x="910" y="182">JOY</text><text x="938" y="182">ANGR</text><text x="966" y="182">CALM</text>
+        </g>
+
+        <!-- Focal: cosine similarity search -->
+        <rect x="800" y="268" width="192" height="72" rx="6" fill="#f5f5f5"/>
+        <rect x="800" y="268" width="192" height="72" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <rect x="808" y="274" width="44" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.5)" stroke-width="0.8"/>
+        <text x="830" y="283" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SEARCH</text>
+        <text x="896" y="306" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Cosine similarity</text>
+        <text x="896" y="322" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">cos θ = v_p·v_s / ‖v_p‖‖v_s‖</text>
+
+        <!-- Vector glyph: song vector -->
+        <rect x="800" y="420" width="192" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="800" y="420" width="192" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="812" y="434" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">v_s · EACH SONG</text>
+        <g fill="#4f5d75">
+          <rect x="818" y="446" width="16" height="32"/>
+          <rect x="846" y="456" width="16" height="22"/>
+          <rect x="874" y="460" width="16" height="18"/>
+          <rect x="902" y="475" width="16" height="3"/>
+          <rect x="930" y="471" width="16" height="7"/>
+          <rect x="958" y="469" width="16" height="9"/>
+        </g>
+        <line x1="812" y1="478" x2="980" y2="478" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <g fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">
+          <text x="826" y="490">SAD</text><text x="854" y="490">NOST</text><text x="882" y="490">LOVE</text>
+          <text x="910" y="490">JOY</text><text x="938" y="490">ANGR</text><text x="966" y="490">CALM</text>
+        </g>
+
+        <!-- Output: ranked songs -->
+        <rect x="1096" y="272" width="152" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="1096" y="272" width="152" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="1104" y="278" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="1118" y="287" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text x="1172" y="306" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Ranked songs</text>
+        <text x="1172" y="322" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sorted by cos θ</text>
+
+        <!-- ============ LEGEND ============ -->
+        <line x1="40" y1="608" x2="1240" y2="608" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="40" y="640" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+        <polygon points="128,628 156,632 156,644 128,648" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="168" y="641" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Encoder · function f(x) → ℝᵈ</text>
+
+        <circle cx="372" cy="638" r="9" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="372" y="642" fill="#2d3142" font-size="10" font-family="'Geist', sans-serif" text-anchor="middle">⊕</text>
+        <text x="388" y="641" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Combine operator</text>
+
+        <rect x="512" y="630" width="28" height="16" rx="3" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <text x="552" y="641" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Input</text>
+
+        <rect x="616" y="630" width="28" height="16" rx="3" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <rect x="622" y="636" width="4" height="8" fill="#4f5d75"/><rect x="628" y="639" width="4" height="5" fill="#4f5d75"/><rect x="634" y="641" width="4" height="3" fill="#4f5d75"/>
+        <text x="656" y="641" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Emotion vector</text>
+
+        <rect x="776" y="630" width="28" height="16" rx="3" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <text x="816" y="641" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Matching step (focal)</text>
+
+        <rect x="988" y="630" width="28" height="16" rx="3" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.30)" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <text x="1028" y="641" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Composite function</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
