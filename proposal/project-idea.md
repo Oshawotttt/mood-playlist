@@ -56,7 +56,7 @@ Computes the cosine similarity between the prompt vector and every song vector, 
 Decide on the fixed set of named mood/theme dimensions that every vector will use. All later stages depend on this stage. A dimension only works if people **ask for it** (prompt side) *and* songs **carry it** (song side), so we look at both.
 
 1. **Start from existing vocabularies.**
-   - **AllMusic moods (via MuSe):** MuSe's 276 seed words come from the mood list written by AllMusic.com's editors (aggressive, bittersweet, lonely, nostalgic, wistful…). Many are about sound or style rather tha mood (crunchy, literate, slick) and get filtered out.
+   - **AllMusic moods (via MuSe):** MuSe's 276 seed words come from the mood list written by AllMusic.com's editors (aggressive, bittersweet, lonely, nostalgic, wistful…). Many are about sound or style rather than mood (crunchy, literate, slick) and get filtered out.
    - **AllMusic themes:** AllMusic also lists themes/situations. We copy these words **by hand** from the public list page (no scraping: AllMusic's terms forbid automated collection) to cover what the moods miss.
    - **GEMS (Geneva Emotional Music Scale):** 9 music-specific moods: wonder, transcendence, tenderness, nostalgia, peacefulness, power, joyful activation, tension, sadness.
    - **EmpatheticDialogues' 32 moods:** which moods people describe in their own words.
