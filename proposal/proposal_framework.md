@@ -112,7 +112,7 @@ Song (description / audio) ──► Song Encoder ──► song vector ──�
 |---|---|---|---|
 | 1 | GEMS (Geneva Emotional Music Scale), Zentner et al. 2008 `[TODO link]` | 9 emotions specific to music | Starting point for our dimension list (Stage 0) |
 | 2 | [GoEmotions paper (ACL 2020)](https://arxiv.org/abs/2005.00547) | 27 emotions in ~58k Reddit comments | Emotion vocabulary of everyday text; training data for the Prompt Encoder |
-| 3 | [MuSe (Akiki & Burghardt)](http://ceur-ws.org/Vol-2723/short26.pdf) | Song sentiment from Last.fm tags scored with a word lexicon | Main tag source; also shows the limits of lexicon-based scores |
+| 3 | [MuSe (Akiki & Burghardt)](http://ceur-ws.org/Vol-2723/short26.pdf) | Songs found on Last.fm by mood tag, scored with a word lexicon | Song list and mood vocabulary; also shows the limits of lexicon-based scores |
 | 4 | Music4All, Santana et al. 2020 `[TODO link]` | ~109k songs with audio clips, lyrics, tags | Catalogue with text and audio for the same songs |
 | 5 | [MTG-Jamendo](https://github.com/MTG/mtg-jamendo-dataset) | CC music with mood/theme tags | Training data for the audio branch |
 | 6 | [DEAM](https://cvml.unige.ch/databases/DEAM/) | Human valence/arousal ratings for ~1.8k songs | Human ground truth for checking our emotion scores |
@@ -126,18 +126,20 @@ Song (description / audio) ──► Song Encoder ──► song vector ──�
 
 ## 7. Datasets / Data Sources
 
-Full review, including rejected and parked sources: [dataset_review.md](dataset_review.md).
+Full review, including rejected sources, and the datasets grouped by model and ranked: [dataset_review.md](dataset_review.md#which-datasets-we-use-by-model).
+We build the two text models first (song text branch, Prompt Encoder). The audio datasets (MTG-Jamendo, DEAM, Song Describer audio, PMEmo clips) are planned for after that.
 
 | No. | Dataset / source | Link / access | Key information | Planned usage |
 |---|---|---|---|---|
-| 1 | **MuSe** | [Kaggle](https://www.kaggle.com/datasets/cakiki/muse-the-musical-sentiment-dataset), CC BY 4.0 | 90k songs, Last.fm tags, lexicon-based valence/arousal/dominance, some Spotify IDs | Stage 0 tag EDA; main input to the text branch (Stage 1) |
+| 1 | **MuSe** | [Kaggle](https://www.kaggle.com/datasets/cakiki/muse-the-musical-sentiment-dataset), CC BY 4.0 | 90k songs, one or more seed mood tags each (276 distinct), lexicon-based valence/arousal/dominance, Spotify IDs for 68%. No full tag list | Stage 0 vocabulary; song list and weak labels for the text branch (Stage 1) |
 | 2 | **Music4All** ⚠️ *tentative* | [Request form](https://sites.google.com/view/contact4music4all), research use | ~109k songs, 30s audio clips, lyrics, tags, features | Both branches on the same songs (Stages 1, 4); fusion test |
 | 3 | **GoEmotions** | [GitHub](https://github.com/google-research/google-research/tree/master/goemotions) / HuggingFace | ~58k Reddit comments, 27 emotions + neutral | Stage 0 vocabulary; Prompt Encoder training and testing (Stage 2) |
-| 4 | **MTG-Jamendo (mood/theme)** | [GitHub](https://github.com/MTG/mtg-jamendo-dataset), CC per track | ~18.5k tracks with 59 mood/theme tags; full audio; human re-labelled test subset | Stage 0 tag EDA; audio-branch training (Stage 4) |
-| 5 | **DEAM** | [Website](https://cvml.unige.ch/databases/DEAM/), CC | ~1.8k songs, human valence/arousal (whole song and per second), audio | Human ground truth; intensity for the audio branch |
-| 6 | **Song Describer** | [GitHub](https://github.com/mulab-mir/song-describer-dataset), CC BY-SA 4.0 | 1,106 human captions for 706 MTG-Jamendo tracks, audio | Stage 3 retrieval test; text–audio consistency check |
-| 7 | **PMEmo** | [GitHub](https://github.com/HuiZhangDB/PMEmo), research | 794 chart pop songs, human valence/arousal, chorus clips | Checking the audio branch on mainstream songs (domain shift) |
-| 8 | **Deezer / iTunes previews** | Free APIs, no key (tested) | 30s previews of mainstream songs | Running the audio branch on recent mainstream songs |
+| 4 | **EmpatheticDialogues** | [GitHub](https://github.com/facebookresearch/EmpatheticDialogues) / HuggingFace, CC BY-NC 4.0 | ~25k first-person emotional situations (median 16 words), one of 32 emotions each | Prompt Encoder training and testing (Stage 2), alongside GoEmotions; pool for Stage 3 test prompts |
+| 5 | **MTG-Jamendo (mood/theme)** *planned, after the first two models* | [GitHub](https://github.com/MTG/mtg-jamendo-dataset), CC per track | ~18.5k tracks with 59 mood/theme tags; full audio; human re-labelled test subset | Audio-branch training (Stage 4), once the text branch and Prompt Encoder work |
+| 6 | **DEAM** | [Website](https://cvml.unige.ch/databases/DEAM/), CC | ~1.8k songs, human valence/arousal (whole song and per second), audio | Human ground truth; intensity for the audio branch |
+| 7 | **Song Describer** | [GitHub](https://github.com/mulab-mir/song-describer-dataset), CC BY-SA 4.0 | 1,106 human captions for 706 MTG-Jamendo tracks, audio | Stage 3 retrieval test; text–audio consistency check |
+| 8 | **PMEmo** | [GitHub](https://github.com/HuiZhangDB/PMEmo), research | 794 chart pop songs, human valence/arousal, chorus clips | Checking the audio branch on mainstream songs (domain shift) |
+| 9 | **Deezer / iTunes previews** | Free APIs, no key (tested) | 30s previews of mainstream songs | Running the audio branch on recent mainstream songs |
 
 **Considered and rejected:** Spotify Artist Streaming Analytics 2020–2025 (Kaggle). It is **fully synthetic** (generated by the uploader's code), so no real patterns can be learned from it.
 **For the baseline:** Spotify feature tables (Kaggle 114k / 1.2M), plus the ReccoBeats API for songs after 2022, give Spotify-style valence and energy per song. We use them for a simple valence × energy baseline that our emotion mapping must beat (M3), and for the MuSe vs Spotify valence check in the EDA. They are not used to train anything.
@@ -146,7 +148,7 @@ Full review, including rejected and parked sources: [dataset_review.md](dataset_
 ## 8. Initial EDA / Preliminary Exploration
 
 Full plan: [dataset_review.md §5](dataset_review.md#5-eda-plan). Summary:
-- **Template Q1–Q8** for MuSe, Music4All, GoEmotions, MTG-Jamendo and DEAM: size, feature dictionary, missing values, duplicates and outliers, distributions, valence × arousal quadrants, MuSe vs Spotify valence.
+- **Template Q1–Q8**, Phase 1 first: EmpatheticDialogues (prompt model), MuSe and PMEmo (song text model), then GoEmotions and Music4All. MTG-Jamendo and DEAM come after the first two models. Covers size, feature dictionary, missing values, duplicates and outliers, distributions, valence × arousal quadrants, MuSe vs Spotify valence.
 - **Tag vocabulary (Stage 0):** tag frequencies, removing non-emotion tags, grouping synonyms, mapping onto GEMS / GoEmotions, finding themes the taxonomies miss.
 - **Label quality:** MTG-Jamendo uploader tags vs the human re-labelled subset; DEAM annotator spread; GoEmotions label imbalance; Jev vs human labels.
 - **Text:** how far training text (comments, tags, captions) is from what users type; vocabulary overlap between prompt-side and song-side text.

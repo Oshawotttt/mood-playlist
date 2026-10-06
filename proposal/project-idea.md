@@ -57,7 +57,7 @@ Decide on the fixed set of named emotion/theme dimensions that every vector will
    - **Valence/arousal:** how positive and how energetic (used by DEAM and MuSe).
    - **GoEmotions' 27 emotions:** shows which emotions appear in prompt-style text.
 2. **EDA on tags.**
-   - Collect the tag vocabulary from MuSe/Last.fm and MTG-Jamendo, count tag frequencies, and drop non-emotion tags ("seen live", "favourites").
+   - Collect the tag vocabulary from MuSe/Last.fm (and Music4All if we get access), count tag frequencies, and drop non-emotion tags ("seen live", "favourites").
    - Group synonyms (sad / melancholic / depressing → sadness).
    - Look for **themes and situations** the taxonomies miss (heartbreak, party, late night, workout, road trip) and decide which become dimensions.
 3. **Fix the final list.** Aim for ~10–20 named dimensions, each with a short written definition. These definitions are also the instructions Jev uses for labelling, so songs and prompts are labelled consistently.
@@ -66,14 +66,14 @@ Decide on the fixed set of named emotion/theme dimensions that every vector will
 
 ### Stage 1: Song descriptions → vector (Song Encoder, text branch)
 - **Input:** song tags, descriptions and (where available) lyrics.
-- **Labels:** emotion scores per song from Jev, checked against MuSe's valence/arousal scores and MTG-Jamendo's mood tags.
+- **Labels:** emotion scores per song from Jev, checked against PMEmo's human valence/arousal ratings (PMEmo has lyrics and comments) and, weakly, MuSe's lexicon scores.
 - **Model:** pretrained transformer backbone (frozen) + small trained head → N emotion scores.
 - **Simple baseline without training:** score each tag against the dimension definitions using word embeddings or an emotion lexicon, then average the scores per song.
 - **Output:** a `text_emotion_vector` column for every song that has descriptions.
 
 ### Stage 2: Prompt → vector (Prompt Encoder)
 - **Input:** free-text prompts.
-- **Labels:** GoEmotions (mapped onto our dimensions) plus Jev-labelled example prompts.
+- **Labels:** GoEmotions and EmpatheticDialogues (mapped onto our dimensions) plus Jev-labelled example prompts.
 - **Model:** pretrained transformer backbone (frozen) + small trained head → N emotion scores.
 - **Output:** a prompt vector over the same N dimensions as the songs.
 
@@ -95,11 +95,13 @@ Decide on the fixed set of named emotion/theme dimensions that every vector will
 
 | Dataset | Contents | Used in | How we use it |
 |---|---|---|---|
-| **MuSe** | ~90k songs with Last.fm tags, valence/arousal/dominance scores and Spotify IDs | Stage 0, 1 | EDA on the tag vocabulary to find emotion dimensions; tags are the main input to the text branch |
+| **MuSe** | ~90k songs, each found on Last.fm by one or more of 276 mood tags, with lexicon valence/arousal/dominance and Spotify IDs (68%). No full tag list | Stage 0, 1 | Seed mood words for the dimension list; song list for the text branch, with full tags fetched from the Last.fm API |
 | **Music4All** | ~109k songs with audio clips, lyrics, tags and metadata (access by request) | Stage 1, 4 | Has text *and* audio for the same songs, so we can train both branches and test Fusion on one catalog |
 | **GoEmotions** | ~58k Reddit comments labelled with 27 emotions | Stage 0, 2 | Everyday emotional text, similar to user prompts; trains/tests the Prompt Encoder and informs the dimension list |
-| **MTG-Jamendo (mood/theme)** | ~18k Creative Commons tracks with ~60 mood/theme tags (~55k tracks overall) | Stage 0, 4 | Tag vocabulary for EDA; main training set for the audio branch |
+| **EmpatheticDialogues** | ~25k short first-person situations ("My dog died and I was heartbroken"), one of 32 emotions each | Stage 0, 2, 3 | Closest text to real prompts; trains/tests the Prompt Encoder with GoEmotions; source of realistic test prompts |
+| **MTG-Jamendo (mood/theme)** | ~18k Creative Commons tracks with ~60 mood/theme tags (~55k tracks overall) | Stage 4 | Main training set for the audio branch. Planned for after the first two models (Stages 1–2) |
 | **DEAM** | ~1.8k songs with continuous valence/arousal ratings | Stage 4 | Adds intensity ("how sad") to the audio branch, which tag-only data lacks |
+| **PMEmo** | 794 chart pop songs with human valence/arousal ratings, lyrics, user comments and chorus clips | Stage 1, 4 | Human check on the text branch (lyrics + comments) in the first phase; domain-shift check on mainstream audio later |
 | **Song Describer** | Free-text captions for ~700 MTG-Jamendo tracks | Stage 3 | Text and audio for the same tracks; used to check that the text and audio branches agree |
 
 ### Labelling
