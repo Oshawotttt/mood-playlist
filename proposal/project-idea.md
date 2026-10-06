@@ -128,7 +128,7 @@ Train a CNN end-to-end on MTG-Jamendo spectrograms instead of using a pretrained
 
 ## Risks and Caveats
 
-Things that could break the idea or weaken the results, plus what we plan to do about each. More detail per dataset is in [proposal/dataset_review.md](proposal/dataset_review.md).
+Things that could break the idea or weaken the results, plus what we plan to do about each. More detail per dataset is in [dataset_review.md](dataset_review.md).
 
 ### Labels
 - **MuSe's valence/arousal are not human ratings of the music.** They come from applying a word lexicon (Warriner et al.) to each song's Last.fm tags. Using them to check the text branch, which also reads tags, is partly circular. The MuSe authors also warn about many songs sharing the same score because they share one seed tag.
@@ -158,7 +158,7 @@ Things that could break the idea or weaken the results, plus what we plan to do 
   → Run the audio branch on 30s previews/clips, and accept that a clip may not represent the whole song.
 - **Spotify's API has been cut back.** Since Nov 2024 new apps can't get audio features or recommendations. In Development Mode the owner needs Premium, with max 5 users per app. Spotify's developer terms may forbid training ML on Spotify content.
   → Do all ML on open datasets. Use Spotify only (optionally) to play the final list.
-- **No YouTube downloading.** It's against YouTube's terms (this is what shut down the original Rythm bot). That rules out MusicCaps audio and the DJ Mix audio.
+- **No YouTube downloading.** It's against YouTube's terms (this is what shut down the original Rythm bot). That rules out MusicCaps audio.
 - **Music4All needs an access request**, and the Spotify Million Playlist Dataset is no longer downloadable from AIcrowd.
   → Request early. Have a plan that works without them.
 - **Matching tracks across datasets loses data**, and Spotify-derived tables contain duplicates (the same song on several releases).
