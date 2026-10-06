@@ -162,9 +162,10 @@ The EDA is Stage 1: it decides the mood dimensions. A dimension only works if pe
 
 **Findings so far:**
 - MuSe has **no full tag list**, only the seed words and a count of emotion tags, so the song model needs Last.fm API tags.
-- MuSe's valence/arousal/dominance come from a word lexicon applied to tags, not from people rating the music. **44% of songs (39,419) share their exact valence/arousal/dominance point with another song**, which confirms the authors' warning. We don't use these scores as labels.
+- MuSe's valence/arousal/dominance come from a word lexicon applied to tags, not from people rating the music. **48% of songs (43,468) share their exact valence/arousal/dominance point with another song** (99.8% of songs with a single emotion tag), which confirms the authors' warning. We don't use these scores as labels.
 - MuSe has no duplicate (artist, track) pairs. Genre has 811 distinct values with a long tail, mostly indie/rock/electronic, so the catalogue reflects Last.fm's userbase.
-- MuSe is artificially balanced (~1,000 songs per seed); mood-neutral songs are missing.
+- MuSe caps each seed at 1,000 songs, but most seeds have far fewer (median 290; 91 of 276 seeds have under 100). Mood-neutral songs are missing.
+- 1,863 MuSe rows share a Spotify ID with another row (the same song with a punctuation difference), so the catalogue needs de-duplicating.
 - EmpatheticDialogues has 24,850 situations (24,503 unique), 32 fairly balanced moods (478–1,279 each), median 16 words, 76% in the first person: the closest public text to real prompts. About 9 of its 32 moods aren't music moods.
 - One candidate dataset turned out to be synthetic and was dropped.
 - Spotify's API no longer gives new apps audio features. ReccoBeats returns Spotify-style valence/energy by track ID (tested 2026-10-05), which is enough for the baseline.
@@ -188,7 +189,7 @@ Full list with explanations: [project-idea.md](project-idea.md#risks-and-caveats
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Seed leakage: the seed word or a synonym stays in a song's tags, and the model learns to copy it | High | High | Remove the seed and every word in its dimension group from the input; spot-check a sample |
-| MuSe's selection is biased (chosen by mood word, ~1,000 per mood, Last.fm's indie/rock userbase) | Certain | Medium | Report genre and artist distributions in the EDA; state it as a limitation; check on PMEmo (chart pop) |
+| MuSe's selection is biased (chosen by mood word, up to 1,000 per mood, Last.fm's indie/rock userbase) | Certain | Medium | Report genre and artist distributions in the EDA; state it as a limitation; check on PMEmo (chart pop) |
 | The seed vocabulary covers sound and feel, not life situations (breakup, party, workout) | High | Medium | Add situations from full Last.fm tags, AllMusic themes and EmpatheticDialogues |
 | EmpatheticDialogues has one writer-chosen label per situation, and ~9 labels aren't music moods | Certain | Medium | Train as "this dimension is high" or add Jev scores; map or drop non-music labels; report per dimension |
 | Last.fm tag coverage is thin for recent and obscure songs | Medium | Medium | Measure coverage on a sample early; v1 only recommends tagged songs; lyrics and artist tags as extensions |
