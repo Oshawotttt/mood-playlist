@@ -1,6 +1,7 @@
 # Dataset Review and Platform Feasibility
 
 > Purpose: the full list of every data source we've considered, what each one really contains, and the EDA we need to run on them. The project itself is described in [project-idea.md](project-idea.md).
+> **⚠️ 2026-10-09:** Last.fm's `track.getTopTags` now returns no tags for ~99% of songs (500 of 506 sampled MuSe songs came back empty). The song model now reads **lyrics** instead (LRCLIB, with the Kaggle Genius dump and Music4All as fallbacks). Plans below that fetch Last.fm track tags are superseded. See [project-idea.md](project-idea.md#v2-plan-lyrics).
 > Datasets 1–10 were checked on 2026-10-05 using the dataset pages, READMEs, the Kaggle API and live API test calls. Datasets 11–14 were added later: MuSe was downloaded and profiled on 2026-10-06; EmpatheticDialogues was downloaded and profiled on 2026-10-06; Music4All and GoEmotions are described from their papers and dataset cards and still need checking.
 
 ## 0. How to read this
@@ -46,7 +47,8 @@ We build the two text models first: the **song text branch** (Stage 1) and the *
 |---|---|---|
 | Both (Stage 0: picking the dimensions) | 11 MuSe | 276 seed mood words as a starting vocabulary for the dimension list |
 | | 13 GoEmotions | Emotion vocabulary of everyday text |
-| **Song text branch** (Stage 1) | 11 MuSe | Song list (~90k) and weak seed-tag labels. Full tags per song have to be fetched from the Last.fm API `[DECIDE]` |
+| **Song text branch** (Stage 1) | 11 MuSe | Song list (~90k) and weak seed-tag labels. ~~Full tags per song have to be fetched from the Last.fm API~~ Last.fm returns no track tags for ~99% of songs (2026-10-09), so the input is **lyrics** |
+| | LRCLIB ([lrclib.net](https://lrclib.net), free API) | Lyrics by artist + title: the song model's input. Fallback: Kaggle Genius Song Lyrics dump |
 | | 12 Music4All ⚠️ *access pending* | Tags + lyrics for mainstream songs |
 | | 5 PMEmo (text and ratings only) | Lyrics and user comments with **human** valence/arousal ratings. The only human check on the text branch in this phase |
 | **Prompt Encoder** (Stage 2) | 13 GoEmotions | Training and testing data (27 emotions) |
@@ -75,7 +77,7 @@ Ranked by how much the project depends on each dataset and whether anything else
 
 | Rank | Dataset | Phase | Why this rank |
 |---|---|---|---|
-| 1 | 11 MuSe | 1 | Song list and seed mood labels; drives the dimension list. Free download, no access needed. Its text is thin (one seed word for most songs), so the text branch also needs Last.fm API tags or Music4All |
+| 1 | 11 MuSe | 1 | Song list and seed mood labels; drives the dimension list. Free download, no access needed. Its text is thin (one seed word for most songs), so the text branch also needs lyrics (LRCLIB) or Music4All |
 | 2 | 13 GoEmotions | 1 | Main training data for the Prompt Encoder. Largest human-labelled emotion text, multi-label, several raters per comment |
 | 3 | 14 EmpatheticDialogues | 1 | Joint main data for the Prompt Encoder with GoEmotions. Closest text to real prompts and balanced labels, but one label per situation and no second rater, so it ranks just below GoEmotions |
 | 4 | 5 PMEmo | 1, 2 | The only human emotion ratings on songs that also have text (lyrics, comments). Small (794 songs), so for evaluation, not training |
@@ -214,7 +216,7 @@ Ranked by how much the project depends on each dataset and whether anything else
   - a **mainstream song list** (90k songs with Last.fm URLs, 68% with Spotify IDs)
   - **weak mood labels**: the seeds are tags real Last.fm users applied
   - **Stage 0 vocabulary**: the 276 seed words are a ready-made list of music mood words
-  - **not** enough text on its own for the text branch. For real tags per song, fetch them from the Last.fm API (`track.getTopTags`, free API key) using MuSe's artist + track, or use Music4All
+  - **not** enough text on its own for the text branch. Last.fm's `track.getTopTags` no longer returns tags for ~99% of songs (2026-10-09), so we fetch lyrics by MuSe's artist + track (LRCLIB), or use Music4All
 - **Watch out:**
   - Valence/arousal are **word scores of the tags, not ratings of the music**. Checking our text branch against them is partly circular, since that branch also reads the tags.
   - The authors warn about **many songs sharing the same point** in sentiment space, because songs with few tags share one seed tag.
