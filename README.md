@@ -10,4 +10,4 @@ Datasets aren't committed to git. Download them from the sources below into `dat
 
 ## EDA
 
-[proposal/DAP_IEDA_Template.ipynb](proposal/DAP_IEDA_Template.ipynb) runs top to bottom from `proposal/`. It needs `pandas`, `numpy`, `matplotlib` and `langdetect`. The failed Last.fm tag fetch is kept in [proposal/FAILED_edas.ipynb](proposal/FAILED_edas.ipynb) (it needs a Last.fm key in `.env`; see `.env.example`).
+[proposal/DAP_IEDA_Template.ipynb](proposal/DAP_IEDA_Template.ipynb) runs top to bottom from `proposal/`. It needs `pandas`, `numpy`, `matplotlib` and `langdetect`. The failed Last.fm tag fetch is kept in [proposal/FAILED_edas.ipynb](proposal/FAILED_edas.ipynb).
