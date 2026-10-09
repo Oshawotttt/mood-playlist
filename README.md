@@ -1,5 +1,6 @@
 # mood-playlist
 
+**DAP EDA Notebooks:** [proposal/DAP_IEDA_Template.ipynb](proposal/DAP_IEDA_Template.ipynb) (main EDA) and [proposal/FAILED_edas.ipynb](proposal/FAILED_edas.ipynb) (failed Last.fm tag fetch).
 ## Data
 
 Datasets aren't committed to git. Download them from the sources below into `data/raw/`.

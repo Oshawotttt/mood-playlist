@@ -136,15 +136,16 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 | Milestone 1: Choose the moods | Finish the EDA on both datasets; fetch lyrics for a sample of songs and measure coverage; group similar mood words | ~10 named moods with definitions, and enough songs and prompts for each | |
 | Milestone 2: Song model | Fetch lyrics for the catalogue; keep English songs with lyrics; train the song model | Mood scores for every song with lyrics; the trained model beats a no-training baseline on songs it hasn't seen | |
 | Milestone 3: Prompt model | Map EmpatheticDialogues' emotions onto our moods; train the prompt model | Mood scores for any prompt; accuracy per mood on held-out situations and our own prompts | |
-| Milestone 4: Matching, evaluation and demo | Build the 50–100 prompt test set; match prompts to songs; answer the research questions; build the demo with Spotify playlist export | Top-10 results measured on the test set; a working demo; final report and presentation | |
+| Milestone 4: Shared mood space | Check that both models output the same moods in the same order; calibrate the two models' score scales so that neither side scores systematically higher | Song and prompt vectors that can be compared directly with cosine similarity | |
+| Milestone 5: Matching, evaluation and demo | Build the 50–100 prompt test set; match prompts to songs; answer the research questions; build the demo with Spotify playlist export | Top-10 results measured on the test set; a working demo; final report and presentation | |
 
 ### Risks and mitigations
 
-| Risk | Mitigation |
-|---|---|
-| Listeners' mood words partly describe how a song sounds, which lyrics can't show | Report results per mood, so it is clear which moods lyrics can and can't predict |
-| Many songs have no lyrics available, and some are instrumental or not in English | The EDA sample found English lyrics for 54% of songs, which is enough. Keep English songs with lyrics, state it as a limitation, and add a second lyrics source if a mood ends up with too few songs |
-| Lyrics are copyrighted | Use them for research only; never republish them in the repository, report or demo |
-| MuSe's songs lean towards Last.fm's listeners (indie, rock, Western) and leave out songs with no clear mood | Report the genre spread; state it as a limitation |
-| EmpatheticDialogues gives only one emotion per situation, and some emotions aren't music moods | Treat the label as "this mood is high" rather than "the others are zero", or add Jev scores; map or drop non-music emotions |
-| Whether a song "matches my mood" is subjective | Build a test set of realistic prompts, and check the results with a small group of listeners; this is what our second research question measures |
+| Risk | Potential impact | Mitigation |
+|---|---|---|
+| Listeners' mood words partly describe how a song sounds, which lyrics can't show | Moods tied to sound (e.g. *aggressive*, *dreamy*) are predicted poorly from lyrics, lowering song-model accuracy for those moods | Report results per mood, so it is clear which moods lyrics can and can't predict |
+| Many songs have no lyrics available, and some are instrumental or not in English | A smaller catalogue; calm, ambient and electronic songs are under-represented, so some moods have few songs to recommend | The EDA sample found English lyrics for 54% of songs, which is enough. Keep English songs with lyrics, state it as a limitation, and add a second lyrics source if a mood ends up with too few songs |
+| Lyrics are copyrighted | Legal and ethical problems if lyrics are shared publicly | Use them for research only; never republish them in the repository, report or demo |
+| MuSe's songs lean towards Last.fm's listeners (indie, rock, Western) and leave out songs with no clear mood | Recommendations skew towards these genres, and results may not carry over to other listeners or music | Report the genre spread; state it as a limitation |
+| EmpatheticDialogues gives only one emotion per situation, and some emotions aren't music moods | The prompt model misses mixed feelings, and some situations can't be mapped onto a mood | Treat the label as "this mood is high" rather than "the others are zero", or add Jev scores; map or drop non-music emotions |
+| Whether a song "matches my mood" is subjective | Test results reflect the team's own taste and may not hold for other users | Build a test set of realistic prompts, and check the results with a small group of listeners; this is what our second research question measures |
