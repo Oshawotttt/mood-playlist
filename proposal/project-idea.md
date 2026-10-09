@@ -50,7 +50,7 @@ v1's song model had no input left for ~99% of MuSe songs, and the tag-based EDA 
 ### Song-side EDA (v2)
 
 Fetching lyrics is part of the Stage 1 EDA:
-- Lyrics coverage per source (LRCLIB, then the fallbacks). **Preliminary:** a first LRCLIB pass on 500 random MuSe songs found lyrics for 119 of the 227 lookups that succeeded (~52%). LRCLIB often returned `HTTP 503`, and those rows still need a retry. Stored in `data/raw/lrclib/sample_500.jsonl`.
+- Lyrics coverage per source (LRCLIB, then the fallbacks). **Result (2026-10-09, 1,000 random MuSe songs):** 59% have lyrics on LRCLIB and 54% have English lyrics, so roughly 49,000 songs in the full catalogue. The Genius fallback isn't needed for now. Coverage favours popular, pop/rock songs; ambient, jazz and electronic are mostly missing. 55% of songs are over the 256-token limit, and 14% have no stanza breaks, so those fall back to fixed blocks of lines. Details are in the lyrics section of `DAP_IEDA_Template.ipynb`; the cache is `data/raw/lrclib/sample_1000.jsonl`.
 - Share of instrumental and non-English songs.
 - Lyric length in word pieces, against the 256 limit.
 - Distinctive words per seed group (log-odds).
@@ -70,7 +70,6 @@ Fetching lyrics is part of the Stage 1 EDA:
 
 ### Still open (v2)
 
-- LRCLIB coverage after retries, and whether the Kaggle fallback is needed (EDA).
 - Music4All access.
 
 ---

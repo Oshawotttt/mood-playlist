@@ -210,7 +210,7 @@ Full list with explanations: [project-idea.md](project-idea.md#risks-and-caveats
 1. How many dimensions (~10?), and which themes/situations (heartbreak, party, workout) count as dimensions?
 2. Do we use Jev for multi-dimension prompt scores, or train on single labels?
 3. One shared text head for songs and prompts, or two separate heads?
-4. LRCLIB lyrics coverage on MuSe (EDA), and whether we need the Kaggle Genius fallback.
+4. ~~LRCLIB lyrics coverage on MuSe~~ Answered by the EDA (2026-10-09): 59% have lyrics, 54% English (~49,000 songs). The Genius fallback isn't needed for now. Hand-check: 50 of 50 matches correct (error rate likely under ~6%).
 5. Do we get Music4All access in time? It has lyrics and pre-2020 Last.fm tags.
 6. Who reads the Spotify terms, and the terms of whichever lyrics source we choose?
 7. Evaluation: offline metrics only, or a listening study too?
