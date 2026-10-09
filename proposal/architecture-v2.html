@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mood-Based Song Matching</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', 'Noto Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1280px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 1280px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Dual encoder · v2 lyrics</p>
+    <h1>Mood-based song matching</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1280 792" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="architecture-title architecture-desc">
+        <title id="architecture-title">Mood-based song matching</title>
+        <desc id="architecture-desc">A prompt encoder and a song encoder, each a frozen sentence transformer followed by a small trained head, turn a user prompt and a song's lyrics (split into verses, embeddings averaged) into scores over the same named mood dimensions, where cosine similarity ranks songs against the prompt.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+        <!-- ============ ZONES ============ -->
+        <!-- Encoders: both share the layer stack shown below -->
+        <rect x="256" y="72" width="208" height="360" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <rect x="268" y="66" width="56" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="272" y="75" fill="rgba(45,49,66,0.55)" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENCODERS</text>
+
+        <!-- Shared Mood Space -->
+        <rect x="736" y="72" width="320" height="376" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <rect x="748" y="66" width="200" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="752" y="75" fill="rgba(45,49,66,0.45)" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">SHARED MOOD SPACE · ~10 NAMED DIMS</text>
+
+        <!-- Encoding layers (detail) -->
+        <rect x="40" y="488" width="1200" height="208" rx="8" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.22)" stroke-width="0.8" stroke-dasharray="4,3"/>
+        <rect x="52" y="482" width="276" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="56" y="491" fill="rgba(45,49,66,0.55)" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">INSIDE EACH ENCODER · SAME LAYERS ON BOTH SIDES</text>
+
+        <!-- ============ ARROWS ============ -->
+        <!-- inputs → encoders -->
+        <line x1="216" y1="136" x2="280" y2="136" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="216" y1="376" x2="280" y2="376" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- encoders → vectors -->
+        <line x1="440" y1="136" x2="800" y2="136" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="562" y="116" width="76" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="600" y="125" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">PROMPT VECTOR</text>
+
+        <line x1="440" y1="376" x2="800" y2="376" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="568" y="356" width="64" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="600" y="365" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">SONG VECTOR</text>
+
+        <!-- vectors → cosine -->
+        <line x1="896" y1="176" x2="896" y2="224" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="896" y1="336" x2="896" y2="288" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- cosine → ranked songs -->
+        <line x1="992" y1="256" x2="1096" y2="256" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <rect x="1024" y="236" width="40" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="1044" y="245" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">TOP-K</text>
+
+        <!-- zoom: encoders → encoding layers -->
+        <line x1="360" y1="432" x2="360" y2="486" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <rect x="368" y="452" width="44" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="390" y="461" fill="#7a8399" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">LAYERS</text>
+
+        <!-- encoding layers chain -->
+        <line x1="248" y1="588" x2="312" y2="588" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="504" y1="588" x2="568" y2="588" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="776" y1="588" x2="840" y2="588" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+        <line x1="984" y1="588" x2="1032" y2="588" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+        <!-- ============ NODES · OVERVIEW ============ -->
+        <!-- Input: user prompt -->
+        <rect x="40" y="104" width="176" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="40" y="104" width="176" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="48" y="110" width="20" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.5)" stroke-width="0.8"/>
+        <text x="58" y="119" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text x="128" y="138" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">User prompt</text>
+        <text x="128" y="154" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">"going through a breakup"</text>
+
+        <!-- Input: song lyrics -->
+        <rect x="40" y="344" width="176" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="40" y="344" width="176" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="48" y="350" width="20" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.5)" stroke-width="0.8"/>
+        <text x="58" y="359" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text x="128" y="378" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Song · lyrics</text>
+        <text x="128" y="394" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">LRCLIB · English only</text>
+
+        <!-- Encoder (function): Prompt Encoder -->
+        <polygon points="280,100 440,114 440,158 280,172" fill="#f5f5f5"/>
+        <polygon points="280,100 440,114 440,158 280,172" fill="#ffffff" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="288" y="106" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="300" y="115" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">f(x)</text>
+        <text x="352" y="138" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Prompt Encoder</text>
+        <text x="352" y="153" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">E_p: text → [0,1]ᴺ</text>
+
+        <!-- Encoder (function): Song Encoder -->
+        <polygon points="280,340 440,354 440,398 280,412" fill="#f5f5f5"/>
+        <polygon points="280,340 440,354 440,398 280,412" fill="#ffffff" stroke="#2d3142" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="288" y="346" width="24" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="300" y="355" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">f(x)</text>
+        <text x="352" y="378" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Song Encoder</text>
+        <text x="352" y="393" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">E_s: lyrics → [0,1]ᴺ</text>
+
+        <!-- Vector glyph: prompt vector -->
+        <rect x="800" y="96" width="192" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="800" y="96" width="192" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="812" y="110" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">v_p · PROMPT</text>
+        <g fill="#4f5d75">
+          <rect x="818" y="119" width="16" height="35"/>
+          <rect x="846" y="127" width="16" height="27"/>
+          <rect x="874" y="138" width="16" height="16"/>
+          <rect x="902" y="152" width="16" height="2"/>
+          <rect x="930" y="146" width="16" height="8"/>
+          <rect x="958" y="149" width="16" height="5"/>
+        </g>
+        <line x1="812" y1="154" x2="980" y2="154" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <g fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">
+          <text x="826" y="166">SAD</text><text x="854" y="166">LONE</text><text x="882" y="166">NOST</text>
+          <text x="910" y="166">JOY</text><text x="938" y="166">TENS</text><text x="966" y="166">CALM</text>
+        </g>
+
+        <!-- Focal: cosine similarity search -->
+        <rect x="800" y="224" width="192" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="800" y="224" width="192" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <rect x="808" y="230" width="44" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.5)" stroke-width="0.8"/>
+        <text x="830" y="239" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">SEARCH</text>
+        <text x="896" y="260" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Cosine similarity</text>
+        <text x="896" y="276" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">cos θ = v_p·v_s / ‖v_p‖‖v_s‖</text>
+
+        <!-- Vector glyph: song vector -->
+        <rect x="800" y="336" width="192" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="800" y="336" width="192" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="812" y="350" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">v_s · EACH SONG</text>
+        <g fill="#4f5d75">
+          <rect x="818" y="362" width="16" height="32"/>
+          <rect x="846" y="370" width="16" height="24"/>
+          <rect x="874" y="374" width="16" height="20"/>
+          <rect x="902" y="391" width="16" height="3"/>
+          <rect x="930" y="387" width="16" height="7"/>
+          <rect x="958" y="383" width="16" height="11"/>
+        </g>
+        <line x1="812" y1="394" x2="980" y2="394" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <g fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">
+          <text x="826" y="406">SAD</text><text x="854" y="406">LONE</text><text x="882" y="406">NOST</text>
+          <text x="910" y="406">JOY</text><text x="938" y="406">TENS</text><text x="966" y="406">CALM</text>
+        </g>
+
+        <!-- Output: ranked songs -->
+        <rect x="1096" y="224" width="152" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="1096" y="224" width="152" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="1104" y="230" width="28" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="1118" y="239" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">OUT</text>
+        <text x="1172" y="258" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Ranked songs</text>
+        <text x="1172" y="274" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">sorted by cos θ</text>
+
+        <!-- ============ NODES · ENCODING LAYERS ============ -->
+        <!-- Input: any text -->
+        <rect x="72" y="556" width="176" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="72" y="556" width="176" height="64" rx="6" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <rect x="80" y="562" width="20" height="12" rx="2" fill="transparent" stroke="rgba(122,131,153,0.5)" stroke-width="0.8"/>
+        <text x="90" y="571" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">IN</text>
+        <text x="160" y="590" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Any text</text>
+        <text x="160" y="606" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">prompt · lyric verse</text>
+
+        <!-- Layer: frozen backbone -->
+        <rect x="312" y="556" width="192" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="312" y="556" width="192" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+        <rect x="320" y="562" width="40" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.4)" stroke-width="0.8"/>
+        <text x="340" y="571" fill="rgba(45,49,66,0.8)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">FROZEN</text>
+        <text x="408" y="590" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Sentence transformer</text>
+        <text x="408" y="606" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">all-MiniLM-L6-v2</text>
+
+        <!-- Vector glyph: embedding (unnamed axes, signed values) -->
+        <rect x="568" y="548" width="208" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="568" y="548" width="208" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#7a8399" stroke-width="1"/>
+        <text x="580" y="562" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">EMBEDDING · ℝ³⁸⁴ · VERSES AVERAGED</text>
+        <line x1="580" y1="592" x2="764" y2="592" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <g fill="#7a8399">
+          <rect x="584" y="582" width="6" height="10"/>
+          <rect x="595" y="592" width="6" height="6"/>
+          <rect x="606" y="578" width="6" height="14"/>
+          <rect x="617" y="592" width="6" height="12"/>
+          <rect x="628" y="588" width="6" height="4"/>
+          <rect x="639" y="584" width="6" height="8"/>
+          <rect x="650" y="592" width="6" height="14"/>
+          <rect x="661" y="586" width="6" height="6"/>
+          <rect x="672" y="592" width="6" height="4"/>
+          <rect x="683" y="580" width="6" height="12"/>
+          <rect x="694" y="592" width="6" height="8"/>
+          <rect x="705" y="590" width="6" height="2"/>
+          <rect x="716" y="582" width="6" height="10"/>
+          <rect x="727" y="592" width="6" height="10"/>
+          <rect x="738" y="586" width="6" height="6"/>
+          <rect x="749" y="592" width="6" height="6"/>
+        </g>
+        <text x="672" y="620" fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">384 NUMBERS · NO NAMES</text>
+
+        <!-- Focal: trained head -->
+        <rect x="840" y="556" width="144" height="64" rx="6" fill="#f5f5f5"/>
+        <rect x="840" y="556" width="144" height="64" rx="6" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <rect x="848" y="562" width="44" height="12" rx="2" fill="transparent" stroke="rgba(235,108,54,0.5)" stroke-width="0.8"/>
+        <text x="870" y="571" fill="#eb6c36" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">TRAINED</text>
+        <text x="912" y="590" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Head</text>
+        <text x="912" y="606" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">small MLP · 384 → N</text>
+
+        <!-- Vector glyph: named mood scores -->
+        <rect x="1032" y="548" width="192" height="80" rx="6" fill="#f5f5f5"/>
+        <rect x="1032" y="548" width="192" height="80" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <text x="1044" y="562" fill="#4f5d75" font-size="7" font-family="'Geist Mono', monospace" letter-spacing="0.14em">N MOOD SCORES · 0–1</text>
+        <g fill="#4f5d75">
+          <rect x="1050" y="574" width="16" height="32"/>
+          <rect x="1078" y="580" width="16" height="26"/>
+          <rect x="1106" y="588" width="16" height="18"/>
+          <rect x="1134" y="604" width="16" height="2"/>
+          <rect x="1162" y="595" width="16" height="11"/>
+          <rect x="1190" y="599" width="16" height="7"/>
+        </g>
+        <line x1="1044" y1="606" x2="1212" y2="606" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <g fill="#7a8399" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.04em">
+          <text x="1058" y="618">SAD</text><text x="1086" y="618">LONE</text><text x="1114" y="618">NOST</text>
+          <text x="1142" y="618">JOY</text><text x="1170" y="618">TENS</text><text x="1198" y="618">CALM</text>
+        </g>
+
+        <!-- ============ LEGEND ============ -->
+        <line x1="40" y1="728" x2="1240" y2="728" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="40" y="760" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+        <rect x="128" y="750" width="28" height="16" rx="3" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1"/>
+        <text x="168" y="761" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Input</text>
+
+        <polygon points="232,748 260,752 260,764 232,768" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="272" y="761" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Encoder · backbone + head</text>
+
+        <rect x="448" y="750" width="28" height="16" rx="3" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+        <text x="488" y="761" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Frozen layer</text>
+
+        <rect x="600" y="750" width="28" height="16" rx="3" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+        <text x="640" y="761" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Focal · trained head, search</text>
+
+        <rect x="832" y="750" width="28" height="16" rx="3" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+        <rect x="838" y="756" width="4" height="8" fill="#4f5d75"/><rect x="844" y="759" width="4" height="5" fill="#4f5d75"/><rect x="850" y="761" width="4" height="3" fill="#4f5d75"/>
+        <text x="872" y="761" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Mood vector · named</text>
+
+        <rect x="1016" y="750" width="28" height="16" rx="3" fill="rgba(45,49,66,0.05)" stroke="#7a8399" stroke-width="1"/>
+        <line x1="1020" y1="758" x2="1040" y2="758" stroke="rgba(45,49,66,0.30)" stroke-width="0.8"/>
+        <rect x="1022" y="754" width="3" height="4" fill="#7a8399"/><rect x="1028" y="758" width="3" height="4" fill="#7a8399"/><rect x="1034" y="753" width="3" height="5" fill="#7a8399"/>
+        <text x="1056" y="761" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace">Embedding · unnamed</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
