@@ -345,6 +345,8 @@ Spotify's own API is now very limited for students:
 
 What we need to show in `DAP_IEDA_Template.ipynb` and in template §8. **[TODO]** Assign one owner per block. Each block gets its own notebook section.
 
+> **Status (2026-10-09):** the notebook covers Q1–Q8 for **EmpatheticDialogues**, **MuSe** and **LRCLIB lyrics** (1,000-song sample), plus a first draft of the mood dimensions. GoEmotions, PMEmo and Music4All aren't explored yet. Items below that rely on Last.fm track tags (e.g. §5.2's full tags, tag lengths in §5.4) are superseded by lyrics.
+
 ### 5.1 Template questions Q1–Q8 (per core dataset)
 **Phase 1 (now):**
 - **Prompt model:** EmpatheticDialogues (main), GoEmotions (second).

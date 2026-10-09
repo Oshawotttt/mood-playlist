@@ -51,10 +51,11 @@ v1's song model had no input left for ~99% of MuSe songs, and the tag-based EDA 
 
 Fetching lyrics is part of the Stage 1 EDA:
 - Lyrics coverage per source (LRCLIB, then the fallbacks). **Result (2026-10-09, 1,000 random MuSe songs):** 59% have lyrics on LRCLIB and 54% have English lyrics, so roughly 49,000 songs in the full catalogue. The Genius fallback isn't needed for now. Coverage favours popular, pop/rock songs; ambient, jazz and electronic are mostly missing. 55% of songs are over the 256-token limit, and 14% have no stanza breaks, so those fall back to fixed blocks of lines. Details are in the lyrics section of `DAP_IEDA_Template.ipynb`; the cache is `data/raw/lrclib/sample_1000.jsonl`.
-- Share of instrumental and non-English songs.
+- Share of instrumental and non-English songs. **Result:** 3.5% instrumental; 8% of songs with lyrics aren't English.
 - Lyric length in word pieces, against the 256 limit.
-- Distinctive words per seed group (log-odds).
-- Clusters of situations mentioned in lyrics (breakup, late night, leaving home). This is the song-side input to deciding which themes become dimensions.
+- Match quality. **Result:** a hand-check of 50 matched songs found 0 wrong (`data/interim/lyrics_match_check.csv`).
+- Distinctive words (log-odds). Done per valence × arousal quadrant for now: the seed groups aren't fixed yet, and 1,000 songs are too few per seed. **Result:** a weak signal at this sample size; only negative / high energy is clear (*death, flesh, hell*). Redo per seed group after the full fetch.
+- Situations mentioned in lyrics (breakup, late night, leaving home), by keyword. This is the song-side input to deciding which themes become dimensions. **Result:** love 46%, night 36%, home / road 26%, breakup / leaving 22%. Breakup / leaving is flat across quadrants (21–25%), which supports named dimensions over two axes.
 
 ### Evaluation changes (v2)
 

@@ -115,10 +115,19 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 
 *MuSe (song side)*
 - 90,001 songs from 26,012 artists, mostly indie, rock and electronic, which reflects who uses Last.fm.
-- MuSe has no tags or lyrics for each song, only the mood word that found it. We planned to fetch each song's tags from the Last.fm API, but a check on 506 random songs found **500 with no tags**: Last.fm now returns tags only for very popular songs. So the song model reads lyrics instead. Fetching lyrics and measuring how many songs have them is part of the EDA.
+- MuSe has no tags or lyrics for each song, only the mood word that found it. We planned to fetch each song's tags from the Last.fm API, but a check on 506 random songs found **500 with no tags**: Last.fm now returns tags only for very popular songs. So the song model reads lyrics instead.
 - MuSe's own mood scores come from a word list applied to the tags, not from people rating the music. 48% of songs share their exact score with another song, so we don't use these scores as labels.
 - Mood words are unevenly used: median 290 songs each, and 91 of the 276 have fewer than 100 songs. Some words describe sound rather than mood (e.g. "crunchy", "slick"). We keep them and check which moods lyrics can actually predict.
 - 1,863 rows are the same song listed twice with slightly different titles, so the catalogue needs de-duplicating.
+
+*Lyrics (LRCLIB, a random sample of 1,000 MuSe songs)*
+- 59% of the songs have lyrics on LRCLIB, and 54% have English lyrics. If that holds for the whole catalogue, about 49,000 songs are usable, far more than the model needs. (On the same songs, Last.fm had tags for 6 of 506.)
+- We checked 50 matched songs by hand, and all 50 were the right song.
+- Coverage leans towards popular songs with vocals: about 87% of pop and rock songs have lyrics, but only 4% of ambient songs and 44% of electronic ones. Calm and dreamy moods will therefore have fewer songs.
+- 55% of the lyrics are longer than the language model reads in one go, so we split each song into verses and average them.
+
+*Both datasets: a first grouping of mood words*
+- A first grouping of all 276 MuSe mood words and 32 EmpatheticDialogues emotions gives 16 candidate moods. Five of them (e.g. *ethereal*, *romance*) have songs but no situations, and *shame* has only 55 songs. Merging these down to about 10 moods, each with enough songs and situations, is the next step of Milestone 1.
 
 ## 9. Project Milestones
 
@@ -134,7 +143,7 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 | Risk | Mitigation |
 |---|---|
 | Listeners' mood words partly describe how a song sounds, which lyrics can't show | Report results per mood; this is what our third research question measures |
-| Many songs have no lyrics available, and some are instrumental or not in English | Use two lyrics sources and measure coverage in the EDA; keep English songs with lyrics and state it as a limitation |
+| Many songs have no lyrics available, and some are instrumental or not in English | The EDA sample found English lyrics for 54% of songs, which is enough. Keep English songs with lyrics, state it as a limitation, and add a second lyrics source if a mood ends up with too few songs |
 | Lyrics are copyrighted | Use them for research only; never republish them in the repository, report or demo |
 | MuSe's songs lean towards Last.fm's listeners (indie, rock, Western) and leave out songs with no clear mood | Report the genre spread; state it as a limitation |
 | EmpatheticDialogues gives only one emotion per situation, and some emotions aren't music moods | Treat the label as "this mood is high" rather than "the others are zero", or add Jev scores; map or drop non-music emotions |

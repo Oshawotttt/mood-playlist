@@ -1,7 +1,7 @@
 # DAP Proposal Framework: Mood-Based Song Matching
 
 > The "trunk" draft of the proposal. Content is agreed here first, then copied into `DAP_Project_Proposal_Template.docx`.
-> Sections follow the template (1–9). The EDA plan also maps to `DAP_IEDA_Template.ipynb` (filled in as `prompt-EDA.ipynb` and `song-description-eda.ipynb`).
+> Sections follow the template (1–9). The EDA is in `DAP_IEDA_Template.ipynb` (one notebook, a section per dataset); the failed Last.fm tag fetch is kept in `FAILED_edas.ipynb`.
 > Sources: the idea comes from [project-idea.md](project-idea.md) (where we iterate). Dataset details and the full EDA plan are in [dataset_review.md](dataset_review.md).
 > Items marked `[TODO]` or `[DECIDE]` still need a team decision.
 >
@@ -150,12 +150,12 @@ The core plan uses **MuSe + lyrics** (song side) and **EmpatheticDialogues** (pr
 
 The EDA is Stage 1: it decides the mood dimensions. A dimension only works if people **ask for it** (prompt side) *and* songs **carry it** (song side), so both datasets get the template Q1–Q8 treatment. Full plan: [dataset_review.md §5](dataset_review.md#5-eda-plan).
 
-- **Song side (MuSe), `song-description-eda.ipynb`:**
+- **Song side (MuSe and LRCLIB lyrics), sections of `DAP_IEDA_Template.ipynb`:**
   - Q1–Q8: size, feature dictionary, missing values, duplicates, valence/arousal/dominance distributions, valence × arousal quadrants, genre distribution.
   - Songs per seed, seeds per song, seed co-occurrence.
   - Sort the 276 seeds into mood words vs sound/style words (crunchy, literate, slick). All are kept as labels; results are reported per dimension.
   - Fetch lyrics for a sample of songs: coverage per source, share of instrumental and non-English songs, lyric length against the 256 word-piece limit, distinctive words per seed group, and situations mentioned in lyrics (breakup, late night, leaving home) that the seeds miss.
-- **Prompt side (EmpatheticDialogues), `prompt-EDA.ipynb`:**
+- **Prompt side (EmpatheticDialogues), section of `DAP_IEDA_Template.ipynb`:**
   - Q1–Q8: size, label frequencies, situation lengths, duplicates and conflicting labels.
   - Most common situations (loss, breakups, exams, jobs) and top words per mood.
   - Which of the 32 moods are music moods, and which (guilty, ashamed, jealous…) need mapping or dropping.
@@ -170,8 +170,10 @@ The EDA is Stage 1: it decides the mood dimensions. A dimension only works if pe
 - EmpatheticDialogues has 24,850 situations (24,503 unique), 32 fairly balanced moods (478–1,279 each), median 16 words, 76% in the first person: the closest public text to real prompts. About 9 of its 32 moods aren't music moods.
 - One candidate dataset turned out to be synthetic and was dropped.
 - Spotify's API no longer gives new apps audio features. ReccoBeats returns Spotify-style valence/energy by track ID (tested 2026-10-05), which is enough for the baseline.
+- **Lyrics (LRCLIB, 1,000 random MuSe songs):** 59% have lyrics and 54% have English lyrics (~49,000 songs if the rate holds), so the Genius fallback isn't needed for now. A hand-check of 50 matches found 0 wrong songs. Coverage favours popular, vocal songs (pop/rock ~87%; ambient 4%, jazz 38%, electronic 44%). 55% of songs are over the 256 word-piece limit and 14% have no stanza breaks (fixed blocks of lines for those).
+- **Draft dimensions:** a first grouping of the 502 candidate terms (`data/interim/mood_clusters.csv`, classified with Claude Opus 5.5) gives 16 moods. Five (ethereal, playful, romance, dread, jaded) have songs but no ED situations, and shame has only 55 songs, so the list still needs merging to ~10.
 
-`[TODO]` Link the EDA notebooks once filled in.
+`[TODO]` Add the link to the EDA notebook (repo URL).
 
 ## 9. Project Milestones
 
@@ -195,9 +197,9 @@ Full list with explanations: [project-idea.md](project-idea.md#risks-and-caveats
 | The seed vocabulary covers sound and feel, not life situations (breakup, party, workout) | High | Medium | Add situations from lyrics, AllMusic themes and EmpatheticDialogues |
 | EmpatheticDialogues has one writer-chosen label per situation, and ~9 labels aren't music moods | Certain | Medium | Train as "this dimension is high" or add Jev scores; map or drop non-music labels; report per dimension |
 | **Happened (2026-10-09):** Last.fm returns no track tags. 500 of 506 sampled MuSe songs came back empty | Certain | High | Pivoted: the song model reads lyrics, with MuSe seeds kept as labels. See [project-idea.md](project-idea.md#v2-plan-lyrics) |
-| Many songs have no lyrics available, and some are instrumental or not in English | High | Medium | LRCLIB plus the Kaggle Genius fallback (and Music4All if granted); measure coverage in the EDA; keep English songs with lyrics and state it as a limitation |
+| Many songs have no lyrics available, and some are instrumental or not in English | Certain | Medium | Measured in the EDA: 54% of sampled songs have English lyrics on LRCLIB. Keep English songs with lyrics and state it as a limitation; add the Kaggle Genius fallback (or Music4All if granted) only if a dimension runs short of songs |
 | Lyrics are copyrighted | Certain | Medium | Research use only; never republish them in the repo, report or demo |
-| Wrong matches across sources by artist + title (covers, live versions, remixes) | Medium | Medium | Use IDs where possible, normalise names, drop ambiguous matches, hand-check ~100 |
+| Wrong matches across sources by artist + title (covers, live versions, remixes) | Low | Medium | Exact match on normalised artist + title; no match counts as no lyrics. Hand-check in the EDA: 0 of 50 wrong (error rate likely under ~6%) |
 | Cosine similarity ignores intensity ("a bit down" = "devastated"); vague prompts give noisy vectors | Medium | Medium | Look at score spread in Stage 4; consider re-ranking by vector length; fallback for weak prompts |
 | Human-rated song data is small (PMEmo, 794 songs) | Certain | Medium | Use it for evaluation only, plus our own test set and a listening study |
 | Spotify terms restrict ML training on its content | Medium | High | Train only on open data; Spotify used only for playback |
