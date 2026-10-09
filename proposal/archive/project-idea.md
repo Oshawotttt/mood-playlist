@@ -1,5 +1,84 @@
 # Mood-Based Song Matching
 
+> **Current plan: [v2 (lyrics)](#v2-plan-lyrics).** The song model reads a song's lyrics, not its Last.fm tags. The [v1 plan (Last.fm tags)](#v1-plan-lastfm-tags-superseded) is kept below for history. Wherever v2 doesn't mention something, v1 still applies (prompt model, dimensions, matching).
+
+## v2 plan (lyrics)
+
+Decided 2026-10-09.
+
+### Why we pivoted: no Last.fm track tags
+
+Last.fm's `track.getTopTags` (and `track.getInfo`) now return an empty tag list for almost every song. Only very popular tracks still get tags.
+
+- **Sample:** 506 random MuSe songs, stored in `data/raw/lastfm/sample_1000.jsonl`.
+- **Result:** 500 of 506 (98.8%) came back with no tags. The other 6 are big hits (e.g. Radiohead "Fake Plastic Trees", Taylor Swift "Love Story"). Each of them got exactly 10 tags.
+- **Not a bug in our code:** every song was found. There were no API errors, and listener counts came back as normal. Only the tag list is empty.
+
+v1's song model had no input left for ~99% of MuSe songs, and the tag-based EDA and PMEmo check broke with it. MuSe itself is unaffected: its song list, seeds and IDs are still there.
+
+**Options we rejected:**
+- **Artist tags** (`artist.getTopTags` still works). They describe the artist, not the song, so they're too rough to use.
+- **Scraping the Last.fm website.** Likely against its terms.
+
+### What changes from v1
+
+| Part | v1 (tags) | v2 (lyrics) |
+|---|---|---|
+| Song model input | Last.fm track tags, seed hidden | Song lyrics |
+| Song model labels | MuSe seeds, grouped into dimensions | Same |
+| Catalogue | Songs with Last.fm tags | English songs with lyrics |
+| Song-model baseline | Group mood tags by rule | Zero-shot: cosine between the lyric embedding and each dimension's written definition |
+| Song-side EDA | Tag frequencies, themes in tags | Lyrics coverage, length and themes in lyrics (see below) |
+| Lyrics | Optional extension | Core input |
+| Prompt model, dimensions, matching | (unchanged) | (unchanged) |
+
+### Song model (v2)
+
+- **Data:** MuSe's ~90k songs. Lyrics fetched by artist + title:
+  1. **LRCLIB** ([lrclib.net](https://lrclib.net), free API, no key) first.
+  2. **Kaggle "Genius Song Lyrics" dump** as a fallback, if LRCLIB coverage is too low. It was scraped from Genius, so research use only.
+  3. **Music4All** (lyrics + pre-2020 Last.fm tags), if we get access. Request by emailing `contact4music4all@gmail.com`.
+- **Catalogue filter:** keep English songs with lyrics. Drop instrumental and non-English songs, report how many, and state it as a limitation. (`all-MiniLM-L6-v2` is English-only.)
+- **Label:** the dimension(s) of the song's MuSe seed(s), as in v1. **All seeds are kept**, including ones that describe sound (crunchy, slick). Sound and lyrics may correlate, so we let the results show which dimensions carry over, reported per dimension.
+- **Seed words in the lyrics:** unlike tags, the seed was never chosen *from* the lyrics, so the circular leakage of v1 doesn't apply. A song seeded "lonely" may still say "lonely". **Train both ways** (seed and synonyms masked, and unmasked) and compare, to see how much the model just spots keywords.
+- **Long lyrics:** `all-MiniLM-L6-v2` truncates at 256 word pieces (~1–2 verses). Split into stanzas, embed each, and **mean-pool**. **Max-pool** is an ablation, because one strong chorus may matter more than the average.
+- **Model:** frozen sentence transformer + small trained head → N mood scores, as in v1.
+- **Baseline (no training):** zero-shot. Score each dimension by the cosine between the lyric embedding and that dimension's written definition. The trained head has to beat it.
+- **Later comparison:** Jev labels the lyrics of a subset of songs directly. Measure how often Jev and the seeds agree, and train a second head on Jev labels to compare. Where they disagree shows where listener mood and lyric meaning differ.
+- **Copyright:** lyrics are for research only. Never republish them (in the repo, report or demo).
+
+### Song-side EDA (v2)
+
+Fetching lyrics is part of the Stage 1 EDA:
+- Lyrics coverage per source (LRCLIB, then the fallbacks). **Result (2026-10-09, 1,000 random MuSe songs):** 59% have lyrics on LRCLIB and 54% have English lyrics, so roughly 49,000 songs in the full catalogue. The Genius fallback isn't needed for now. Coverage favours popular, pop/rock songs; ambient, jazz and electronic are mostly missing. 55% of songs are over the 256-token limit, and 14% have no stanza breaks, so those fall back to fixed blocks of lines. Details are in the lyrics section of `DAP_IEDA_Template.ipynb`; the cache is `data/raw/lrclib/sample_1000.jsonl`.
+- Share of instrumental and non-English songs. **Result:** 3.5% instrumental; 8% of songs with lyrics aren't English.
+- Lyric length in word pieces, against the 256 limit.
+- Match quality. **Result:** a hand-check of 50 matched songs found 0 wrong (`data/interim/lyrics_match_check.csv`).
+- Distinctive words (log-odds). Done per valence × arousal quadrant for now: the seed groups aren't fixed yet, and 1,000 songs are too few per seed. **Result:** a weak signal at this sample size; only negative / high energy is clear (*death, flesh, hell*). Redo per seed group after the full fetch.
+- Situations mentioned in lyrics (breakup, late night, leaving home), by keyword. This is the song-side input to deciding which themes become dimensions. **Result:** love 46%, night 36%, home / road 26%, breakup / leaving 22%. Breakup / leaving is flat across quadrants (21–25%).
+
+### Evaluation changes (v2)
+
+- **Song model:** beats the zero-shot baseline on held-out songs (seed labels), per dimension.
+- **PMEmo:** a rough check that our song vectors, projected onto valence/arousal, roughly match PMEmo's human ratings on its lyrics. Details later.
+- The Stage 4 prompt → song evaluation is unchanged.
+
+### Research questions (v2)
+
+1. How useful can song labels and descriptions be in determining a song's relevance to a user's prompt?
+2. To what extent can an ML system meet a user's subjective requirements from it?
+3. Can people's own descriptions of how they feel be matched to songs through a small set of named moods, without any examples of which songs suit which prompts?
+
+### Still open (v2)
+
+- Music4All access.
+
+---
+
+## v1 plan (Last.fm tags, superseded)
+
+Everything below is the original plan, written before Last.fm track tags turned out to be empty. Kept for history.
+
 ## Idea
 
 Map songs to moods/themes so a user can describe how they feel in plain language (e.g. *"I'm going through a breakup"*) and get songs that match that feeling.

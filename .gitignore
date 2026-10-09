@@ -1,9 +1,12 @@
 # Datasets: download locally, don't commit (size + licences, e.g. EmpatheticDialogues is CC BY-NC)
 data/*
-!data/README.md
 
 # Python / Jupyter
 __pycache__/
 .ipynb_checkpoints/
 .venv/
 .env
+
+# Office temp files
+~$*
+~WRL*.tmp
