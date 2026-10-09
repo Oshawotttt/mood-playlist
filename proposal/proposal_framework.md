@@ -72,7 +72,7 @@ Song (lyrics) ────────► Song Encoder ────► song vect
 | 1 | Define the dimensions (EDA): start from AllMusic moods (via MuSe seeds), AllMusic themes, GEMS and EmpatheticDialogues' 32 moods; run EDA on both sides; group synonyms; check coverage | ~10 named dimensions with written definitions and a mapping table |
 | 2 | Song model: lyrics → mood vector. Zero-shot baseline: cosine between the lyric embedding and each dimension's written definition | `mood_vector` per English song with lyrics (the catalogue) |
 | 3 | Prompt model: EmpatheticDialogues situations → mood vector | prompt vector; tested on held-out situations and our own prompts |
-| 4 | Match and evaluate: cosine search, test set of 50–100 prompts, valence × energy baseline, PMEmo human check, calibration | precision@10 on the test set |
+| 4 | Match and evaluate: cosine search, test set of 50–100 prompts, PMEmo human check, calibration | precision@10 on the test set |
 
 **Final output:** a demo where a user types a prompt and gets a ranked list of songs, each with the moods it matched on. `[DECIDE]` Optionally play the list through Spotify (playback control only).
 
@@ -82,10 +82,9 @@ Song (lyrics) ────────► Song Encoder ────► song vect
 - **Learned joint embedding:** clustering to discover dimensions, or CLAP as a baseline.
 
 ### 4.3 Key research questions
-`[DECIDE]` Pick 2–3:
-1. Can free-text prompts and songs be mapped onto a small set of named mood dimensions well enough to match them, without any prompt–song paired data?
-2. Do ~10 named mood dimensions match prompts to songs better than a simple valence × energy baseline?
-3. How much of a song's listener-perceived mood can its lyrics alone predict?
+1. How useful can song labels and descriptions be in determining a song's relevance to a user's prompt?
+2. To what extent can an ML system meet a user's subjective requirements from it?
+3. Can people's own descriptions of how they feel be matched to songs through a small set of named moods, without any examples of which songs suit which prompts?
 
 ### 4.4 Intended users and expected value
 | User | How they benefit |
@@ -104,7 +103,7 @@ Song (lyrics) ────────► Song Encoder ────► song vect
 - **Multi-label classification:** predicting N mood scores (0–1) per input, trained from single positive labels ("this dimension is high").
 - **Label design:** grouping vocabularies into dimensions; using listener mood words (MuSe seeds) as labels for lyrics.
 - **Retrieval:** cosine similarity search over vectors, ranked results.
-- **Evaluation:** precision@k, per-dimension accuracy, song model vs a zero-shot baseline, comparison with a valence × energy baseline, rough check against PMEmo, small listening study.
+- **Evaluation:** precision@k, per-dimension accuracy, song model vs a zero-shot baseline, rough check against PMEmo, small listening study.
 - *Optional:* weak supervision with an LLM (Jev, also compared against the seed labels); clustering of lyric embeddings for dimension discovery; audio CNNs on mel-spectrograms; contrastive learning (CLAP).
 
 ## 6. Research Done
@@ -138,9 +137,8 @@ The core plan uses **MuSe + lyrics** (song side) and **EmpatheticDialogues** (pr
 | 4 | **AllMusic mood and theme lists** | Public list pages, copied by hand | Editor-written mood and theme words | Stage 1 vocabulary only |
 | 5 | **GoEmotions** | [GitHub](https://github.com/google-research/google-research/tree/master/goemotions) / HuggingFace | ~58k Reddit comments, 27 emotions + neutral | Second training source for the Prompt Encoder (Stage 3) |
 | 6 | **PMEmo** | [GitHub](https://github.com/HuiZhangDB/PMEmo), research | 794 chart pop songs, human valence/arousal, lyrics, comments, chorus clips | Rough human check on the song vectors (Stage 4) |
-| 7 | **Spotify feature tables + ReccoBeats** | Kaggle (114k / 1.2M); ReccoBeats API, no key (tested) | Spotify-style valence and energy per song | Valence × energy baseline (Stage 4). Not used for training |
-| 8 | **Music4All** ⚠️ *access pending* | Email `contact4music4all@gmail.com` ([page](https://sites.google.com/view/contact4music4all)), research use | ~109k songs with lyrics, Last.fm tags (collected before Last.fm emptied them), 30s clips | Extra lyrics (and the audio extension). The core plan works without it |
-| 9 | **Song Describer** | [GitHub](https://github.com/mulab-mir/song-describer-dataset), CC BY-SA 4.0 | 1,106 human captions for 706 tracks | Descriptions extension |
+| 7 | **Music4All** ⚠️ *access pending* | Email `contact4music4all@gmail.com` ([page](https://sites.google.com/view/contact4music4all)), research use | ~109k songs with lyrics, Last.fm tags (collected before Last.fm emptied them), 30s clips | Extra lyrics (and the audio extension). The core plan works without it |
+| 8 | **Song Describer** | [GitHub](https://github.com/mulab-mir/song-describer-dataset), CC BY-SA 4.0 | 1,106 human captions for 706 tracks | Descriptions extension |
 
 **Audio extension only:** MTG-Jamendo, DEAM, Deezer/iTunes 30s previews. Not downloaded unless we reach the audio branch.
 **Considered and rejected:** Spotify Artist Streaming Analytics 2020–2025 (Kaggle). It is **fully synthetic** (generated by the uploader's code), so no real patterns can be learned from it. MusicCaps (audio only via YouTube, which is against YouTube's terms).
@@ -169,7 +167,6 @@ The EDA is Stage 1: it decides the mood dimensions. A dimension only works if pe
 - 1,863 MuSe rows share a Spotify ID with another row (the same song with a punctuation difference), so the catalogue needs de-duplicating.
 - EmpatheticDialogues has 24,850 situations (24,503 unique), 32 fairly balanced moods (478–1,279 each), median 16 words, 76% in the first person: the closest public text to real prompts. About 9 of its 32 moods aren't music moods.
 - One candidate dataset turned out to be synthetic and was dropped.
-- Spotify's API no longer gives new apps audio features. ReccoBeats returns Spotify-style valence/energy by track ID (tested 2026-10-05), which is enough for the baseline.
 - **Lyrics (LRCLIB, 1,000 random MuSe songs):** 59% have lyrics and 54% have English lyrics (~49,000 songs if the rate holds), so the Genius fallback isn't needed for now. A hand-check of 50 matches found 0 wrong songs. Coverage favours popular, vocal songs (pop/rock ~87%; ambient 4%, jazz 38%, electronic 44%). 55% of songs are over the 256 word-piece limit and 14% have no stanza breaks (fixed blocks of lines for those).
 - **Draft dimensions:** a first grouping of the 502 candidate terms (`data/interim/mood_clusters.csv`, classified with Claude Opus 5.5) gives 16 moods. Five (ethereal, playful, romance, dread, jaded) have songs but no ED situations, and shame has only 55 songs, so the list still needs merging to ~10.
 
@@ -184,14 +181,14 @@ The EDA is Stage 1: it decides the mood dimensions. A dimension only works if pe
 | **M1: EDA and dimensions** (Stage 1) | EDA on MuSe and EmpatheticDialogues, fetch lyrics for a sample and measure coverage, group synonyms, fix the dimension list | Finished EDA notebooks. ~10 named dimensions with definitions and a mapping table. Songs and prompts counted per dimension | `[TODO]` ~early Nov 2026 |
 | **M2: Song model** (Stage 2) | Fetch and cache lyrics for MuSe (overnight job), keep English songs with lyrics, train the head; zero-shot baseline | Mood vector for every song with lyrics. Trained model beats the zero-shot baseline on held-out songs | `[TODO]` ~Dec 2026 |
 | **M3: Prompt model** (Stage 3) | Map ED moods onto the dimensions, train the head (optionally with GoEmotions / Jev scores) | Prompt vectors. Per-dimension accuracy on held-out ED situations and our own prompts | `[TODO]` ~Jan 2027 |
-| **M4: Matching, evaluation and prototype** (Stage 4) | Test set of 50–100 prompts, cosine search, valence × energy baseline, PMEmo check, calibration, demo, small listening study; extensions if time | precision@10 beats the valence × energy baseline. Working demo (prompt → ranked, explained songs). Final report and presentation | `[TODO]` ~Mar/Apr 2027 |
+| **M4: Matching, evaluation and prototype** (Stage 4) | Test set of 50–100 prompts, cosine search, PMEmo check, calibration, demo, small listening study; extensions if time | precision@10 on the test set. Working demo (prompt → ranked, explained songs). Final report and presentation | `[TODO]` ~Mar/Apr 2027 |
 
 ### Risks and mitigations
 Full list with explanations: [project-idea.md](project-idea.md#risks-and-caveats).
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Seed labels describe how listeners hear a song, partly its sound, which lyrics can't show | High | High | Report results per dimension; this is what RQ3 measures |
+| Seed labels describe how listeners hear a song, partly its sound, which lyrics can't show | High | High | Report results per dimension |
 | The model spots seed words in the lyrics ("lonely") instead of learning mood | Medium | Medium | Train with seed words masked and unmasked, and compare |
 | MuSe's selection is biased (chosen by mood word, up to 1,000 per mood, Last.fm's indie/rock userbase) | Certain | Medium | Report genre and artist distributions in the EDA; state it as a limitation; check on PMEmo (chart pop) |
 | The seed vocabulary covers sound and feel, not life situations (breakup, party, workout) | High | Medium | Add situations from lyrics, AllMusic themes and EmpatheticDialogues |

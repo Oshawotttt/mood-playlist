@@ -42,7 +42,7 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 - **How both models are built.** A pretrained language model (a sentence transformer) turns text into an embedding, a list of numbers that captures what the text means. A small layer that we train on top turns that embedding into the mood scores. Only the small layer is trained, so a few thousand examples are enough, and the same setup reads both prompts and lyrics.
 - **Matching.** We compare the prompt's mood scores with every song's scores (cosine similarity) and return the closest songs.
 
-**What lyrics can and can't tell us.** The mood words in MuSe come from listeners, who react to the whole song: its sound as well as its words. A song can sound upbeat and still have sad lyrics. So we expect some moods to be easy to read from lyrics (sadness) and others hard (tension, power). Measuring which ones is our third research question.
+**What lyrics can and can't tell us.** The mood words in MuSe come from listeners, who react to the whole song: its sound as well as its words. A song can sound upbeat and still have sad lyrics. So we expect some moods to be easy to read from lyrics (sadness) and others hard (tension, power), and we report results per mood to see which ones.
 
 **Labels.** EmpatheticDialogues gives one emotion per situation, but a breakup is sad *and* lonely *and* maybe nostalgic. Optionally, Jev gives each situation a score for every mood.
 
@@ -60,9 +60,9 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 **If time allows.** Read the audio as well as the lyrics, to cover instrumental songs and moods that live in the sound.
 
 ### 4.3 Key research questions
-1. Can people's own descriptions of how they feel be matched to songs through a small set of named moods, without any examples of which songs suit which prompts?
-2. Do about 10 named moods match prompts to songs better than only scoring how positive and how energetic they are?
-3. How much of a song's listener-perceived mood can its lyrics alone predict?
+1. How useful can song labels and descriptions be in determining a song's relevance to a user's prompt?
+2. To what extent can an ML system meet a user's subjective requirements from it?
+3. Can people's own descriptions of how they feel be matched to songs through a small set of named moods, without any examples of which songs suit which prompts?
 
 ### 4.4 Intended users / beneficiaries and expected value
 
@@ -87,9 +87,9 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 
 | No. | Link / source | What the research is about | How it informs our project |
 |---|---|---|---|
-| 1 | Zentner, Grandjean & Scherer (2008), *Emotions evoked by the sound of music* (GEMS). [doi:10.1037/1528-3542.8.4.494](https://doi.org/10.1037/1528-3542.8.4.494) | Nine emotions people actually feel from music, such as nostalgia, wonder and tenderness | Starting list for our moods. Shows that two axes miss feelings that matter in music |
-| 2 | Eerola & Vuoskoski (2011), *A comparison of the discrete and dimensional models of emotion in music*. [doi:10.1177/0305735610362821](https://doi.org/10.1177/0305735610362821) | Compares named emotions with the two-axis view, which scores only how positive and how energetic music is | The two-axis view is the usual way music data describes mood (e.g. Spotify's "valence" and "energy" scores). This study asks the same question as our second research question |
-| 3 | Warriner, Kuperman & Brysbaert (2013), *Norms of valence, arousal, and dominance for 13,915 English lemmas*. [doi:10.3758/s13428-012-0314-x](https://doi.org/10.3758/s13428-012-0314-x) | Over 1 million crowd ratings of how positive, how energetic and how in-control about 14,000 English words feel, on a 1–9 scale | The source of MuSe's mood scores: MuSe looks up each song's mood words in this list and averages them. So the scores rate the words, not the music, which is why we don't use them as labels. It could also place prompts and lyrics on the two axes for our second research question |
+| 1 | Zentner, Grandjean & Scherer (2008), *Emotions evoked by the sound of music* (GEMS). [doi:10.1037/1528-3542.8.4.494](https://doi.org/10.1037/1528-3542.8.4.494) (SMU Libraries)| Nine emotions people actually feel from music, such as nostalgia, wonder and tenderness | Starting list for our moods. Shows that two axes miss feelings that matter in music |
+| 2 | Eerola & Vuoskoski (2011), *A comparison of the discrete and dimensional models of emotion in music*. [doi:10.1177/0305735610362821](https://doi.org/10.1177/0305735610362821) | Compares named emotions with the two-axis view, which scores only how positive and how energetic music is | The two-axis view is the usual way music data describes mood (e.g. Spotify's "valence" and "energy" scores). This study is the evidence for choosing named moods over it |
+| 3 | Warriner, Kuperman & Brysbaert (2013), *Norms of valence, arousal, and dominance for 13,915 English lemmas*. [doi:10.3758/s13428-012-0314-x](https://doi.org/10.3758/s13428-012-0314-x) | Over 1 million crowd ratings of how positive, how energetic and how in-control about 14,000 English words feel, on a 1–9 scale | The source of MuSe's mood scores: MuSe looks up each song's mood words in this list and averages them. So the scores rate the words, not the music, which is why we don't use them as labels |
 
 ## 7. Datasets / Data Sources to be Used
 
@@ -142,9 +142,9 @@ MoodMix lets a user describe how they feel in their own words (*"I'm going throu
 
 | Risk | Mitigation |
 |---|---|
-| Listeners' mood words partly describe how a song sounds, which lyrics can't show | Report results per mood; this is what our third research question measures |
+| Listeners' mood words partly describe how a song sounds, which lyrics can't show | Report results per mood, so it is clear which moods lyrics can and can't predict |
 | Many songs have no lyrics available, and some are instrumental or not in English | The EDA sample found English lyrics for 54% of songs, which is enough. Keep English songs with lyrics, state it as a limitation, and add a second lyrics source if a mood ends up with too few songs |
 | Lyrics are copyrighted | Use them for research only; never republish them in the repository, report or demo |
 | MuSe's songs lean towards Last.fm's listeners (indie, rock, Western) and leave out songs with no clear mood | Report the genre spread; state it as a limitation |
 | EmpatheticDialogues gives only one emotion per situation, and some emotions aren't music moods | Treat the label as "this mood is high" rather than "the others are zero", or add Jev scores; map or drop non-music emotions |
-| Whether a song "matches my mood" is subjective | Build a test set of realistic prompts, and check the results with a small group of listeners |
+| Whether a song "matches my mood" is subjective | Build a test set of realistic prompts, and check the results with a small group of listeners; this is what our second research question measures |

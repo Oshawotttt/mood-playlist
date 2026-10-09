@@ -55,7 +55,7 @@ Fetching lyrics is part of the Stage 1 EDA:
 - Lyric length in word pieces, against the 256 limit.
 - Match quality. **Result:** a hand-check of 50 matched songs found 0 wrong (`data/interim/lyrics_match_check.csv`).
 - Distinctive words (log-odds). Done per valence × arousal quadrant for now: the seed groups aren't fixed yet, and 1,000 songs are too few per seed. **Result:** a weak signal at this sample size; only negative / high energy is clear (*death, flesh, hell*). Redo per seed group after the full fetch.
-- Situations mentioned in lyrics (breakup, late night, leaving home), by keyword. This is the song-side input to deciding which themes become dimensions. **Result:** love 46%, night 36%, home / road 26%, breakup / leaving 22%. Breakup / leaving is flat across quadrants (21–25%), which supports named dimensions over two axes.
+- Situations mentioned in lyrics (breakup, late night, leaving home), by keyword. This is the song-side input to deciding which themes become dimensions. **Result:** love 46%, night 36%, home / road 26%, breakup / leaving 22%. Breakup / leaving is flat across quadrants (21–25%).
 
 ### Evaluation changes (v2)
 
@@ -65,9 +65,9 @@ Fetching lyrics is part of the Stage 1 EDA:
 
 ### Research questions (v2)
 
-1. Can people's own descriptions of how they feel be matched to songs through a small set of named moods, without any examples of which songs suit which prompts?
-2. Do about 10 named moods match prompts to songs better than only scoring how positive and how energetic they are?
-3. **New:** How much of a song's listener-perceived mood can its lyrics alone predict?
+1. How useful can song labels and descriptions be in determining a song's relevance to a user's prompt?
+2. To what extent can an ML system meet a user's subjective requirements from it?
+3. Can people's own descriptions of how they feel be matched to songs through a small set of named moods, without any examples of which songs suit which prompts?
 
 ### Still open (v2)
 
