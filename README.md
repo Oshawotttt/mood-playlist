@@ -1,6 +1,6 @@
 # mood-playlist
 
-**DAP EDA Notebooks:** [proposal/DAP_IEDA_Template.ipynb](proposal/DAP_IEDA_Template.ipynb) (main EDA) and [proposal/FAILED_edas.ipynb](proposal/FAILED_edas.ipynb) (failed Last.fm tag fetch).
+**DAP EDA Notebooks:** [proposal/DAP_IEDA_Template.ipynb](proposal/DAP_IEDA_Template.ipynb) (main EDA) [proposal/FAILED_edas.ipynb](proposal/FAILED_edas.ipynb) (failed Last.fm tag fetch) and [proposal/explorations_eda.ipynb](proposal/explorations_eda.ipynb) (coverage of Spotify audio features, AcousticBrainz and the Million Playlist Dataset; needs `kagglehub`). [proposal/acousticbrainz_eda.ipynb](proposal/acousticbrainz_eda.ipynb) explores every AcousticBrainz field for the 1,000-song lyrics sample (needs `pyarrow`).
 ## Data
 
 Datasets aren't committed to git. Download them from the sources below into `data/raw/`.
