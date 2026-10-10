@@ -1,0 +1,1 @@
+We have tested Last.fm. It's fucking stupid because they deleted a bunch of old shit. MuSe uses it's past data it no longer has. Never mention Last.fm outside the context of MuSe.
